@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#f5f5f2" />
+    <meta name="description" content="当前浏览器最近 7 天的视频文案提取记录" />
+    <title>提取记录 · 文案提取器</title>
+  </head>
+  <body>
+    <header class="records-header">
+      <a class="records-brand" href="/copy-studio">
+        <span>文</span><div><strong>文案提取器</strong><small>Transcript Extractor</small></div>
+      </a>
+      <a class="back-link" href="/copy-studio">← 返回文案提取</a>
+    </header>
+
+    <main class="records-main">
+      <section class="records-hero">
+        <div>
+          <span class="eyebrow">LOCAL HISTORY</span>
+          <h1>最近 7 天提取记录</h1>
+          <p>这里只读取当前浏览器的 IndexedDB 缓存。更换设备、浏览器或清除网站数据后，记录不会同步或恢复。</p>
+        </div>
+        <span class="local-badge"><i></i>仅当前设备</span>
+      </section>
+
+      <section class="records-toolbar" id="recordsToolbar" hidden>
+        <div><strong><span id="recordCount">0</span> 条记录</strong><small>到期记录会在打开页面时自动清理</small></div>
+        <button id="clearRecords" type="button">清空当前兑换码记录</button>
+      </section>
+
+      <section class="records-list" id="recordsList"></section>
+
+      <section class="records-state" id="recordsState">
+        <span class="state-icon">⌁</span>
+        <h2 id="stateTitle">正在读取本地记录</h2>
+        <p id="stateDescription">请稍候</p>
+        <a id="stateAction" href="/copy-studio" hidden>返回输入兑换码</a>
+      </section>
+    </main>
+
+    <div class="records-toast" id="recordsToast" hidden role="status"></div>
+    <script type="module" src="/src/transcript-records.ts"></script>
+  </body>
+</html>

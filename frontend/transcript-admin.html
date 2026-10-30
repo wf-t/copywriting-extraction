@@ -1,0 +1,151 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#17181d" />
+    <meta name="description" content="文案提取器 CDK 与语音识别配置管理" />
+    <title>CDK 管理 · 文案提取器</title>
+  </head>
+  <body>
+    <section class="admin-login" id="adminLogin">
+      <form class="login-card" id="adminLoginForm">
+        <span class="admin-mark">管</span>
+        <span class="eyebrow">CONTROL CENTER</span>
+        <h1>管理员登录</h1>
+        <p>管理兑换码额度与语音识别方式</p>
+        <label for="adminUsername">管理员账号</label>
+        <input id="adminUsername" autocomplete="username" required />
+        <label for="adminPassword">管理员密码</label>
+        <input id="adminPassword" type="password" autocomplete="current-password" required />
+        <button id="adminLoginButton" type="submit">进入管理后台</button>
+        <div class="form-error" id="loginError" hidden></div>
+      </form>
+    </section>
+
+    <div class="admin-app" id="adminApp" hidden>
+      <aside class="sidebar">
+        <a class="sidebar-brand" href="/copy-studio">
+          <span>文</span><div><strong>文案提取器</strong><small>商业管理后台</small></div>
+        </a>
+        <nav>
+          <button class="active" data-view-target="homeView"><i>首</i>首页</button>
+          <button data-view-target="cdkView"><i>码</i>CDK 管理</button>
+          <button data-view-target="settingsView"><i>识</i>语音识别配置</button>
+        </nav>
+        <div class="sidebar-foot">
+          <a href="/copy-studio">← 返回用户端</a>
+          <button id="adminLogout" type="button">退出管理</button>
+        </div>
+      </aside>
+
+      <main class="admin-main">
+        <header class="topbar">
+          <div><span class="eyebrow">TRANSCRIPT EXTRACTOR</span><h1 id="viewTitle">首页</h1></div>
+          <span class="server-status"><i></i>本地服务已连接</span>
+        </header>
+
+        <section class="admin-view" id="homeView">
+          <div class="warning-banner" id="defaultPasswordWarning" hidden>
+            当前正在使用默认管理员密码。部署到服务器前，请设置环境变量 <code>CDK_ADMIN_USERNAME</code> 和 <code>CDK_ADMIN_PASSWORD</code>。
+          </div>
+
+          <section class="dashboard-intro">
+            <div><span class="card-kicker">BUSINESS OVERVIEW</span><h2>运营概览</h2><p>查看兑换码总体额度和今日实际使用情况。</p></div>
+            <span id="dashboardDate">今天</span>
+          </section>
+
+          <div class="stats-grid">
+            <article><span>兑换码总数</span><strong id="statTotalCodes">0</strong><small>历史生成</small></article>
+            <article><span>可用兑换码</span><strong id="statActiveCodes">0</strong><small>启用且有余量</small></article>
+            <article><span>总可用次数</span><strong id="statTotalUses">0</strong><small>累计配额</small></article>
+            <article><span>已消费次数</span><strong id="statUsedUses">0</strong><small>校验通过后扣除</small></article>
+            <article class="today-stat"><span>今日提取次数</span><strong id="statTodayUses">0</strong><small>从今日 00:00 起</small></article>
+            <article class="today-stat"><span>今日处理时长</span><strong><span id="statTodayMinutes">0</span><em>分钟</em></strong><small>已通过时长校验的音频</small></article>
+          </div>
+        </section>
+
+        <section class="admin-view" id="cdkView" hidden>
+
+          <section class="card generator-card">
+            <div class="card-head"><div><span class="card-kicker">CREATE CDK</span><h2>生成兑换码</h2></div><p>选择视频时长档次和可提取次数，可一次批量生成。</p></div>
+            <form class="generate-form" id="generateForm">
+              <label>视频时长档次<select id="durationTier"><option value="5">5 分钟</option><option value="10">10 分钟</option><option value="15">15 分钟</option><option value="20">20 分钟</option></select></label>
+              <label>每码使用次数<input id="totalUses" type="number" min="1" max="100000" value="5" required /></label>
+              <label>生成数量<input id="quantity" type="number" min="1" max="100" value="1" required /></label>
+              <button type="submit" id="generateButton">生成 CDK</button>
+            </form>
+            <div class="generated-results" id="generatedResults" hidden>
+              <div><strong>本次生成结果</strong><button id="copyGenerated" type="button">复制全部</button></div>
+              <pre id="generatedCodes"></pre>
+            </div>
+          </section>
+
+          <section class="card table-card">
+            <div class="table-toolbar">
+              <div><span class="card-kicker">CODE INVENTORY</span><h2>兑换码列表 <small>匹配 <b id="matchedCount">0</b> 个</small></h2></div>
+              <form class="filter-form" id="searchForm">
+                <label class="filter-code"><span>兑换码</span><input id="searchInput" placeholder="完整或部分 CDK" /></label>
+                <label><span>状态</span><select id="statusFilter"><option value="all">全部状态</option><option value="active">可使用</option><option value="disabled">已失效</option><option value="exhausted">已用完</option></select></label>
+                <label><span>时长</span><select id="durationFilter"><option value="">全部时长</option><option value="5">5 分钟</option><option value="10">10 分钟</option><option value="15">15 分钟</option><option value="20">20 分钟</option></select></label>
+                <label><span>配置次数</span><input class="uses-filter" id="usesFilter" type="number" min="1" max="100000" placeholder="全部" /></label>
+                <div class="filter-actions"><button type="submit">查询</button><button class="ghost" id="clearSearch" type="button">重置</button><button class="export-button" id="exportCodes" type="button">导出 TXT</button><button class="delete-button" id="batchDeleteCodes" type="button">批量删除</button></div>
+              </form>
+            </div>
+            <div class="table-scroll">
+              <table>
+                <thead><tr><th>兑换码</th><th>档次</th><th>使用额度</th><th>状态</th><th>生成时间</th><th>操作</th></tr></thead>
+                <tbody id="cdkTableBody"></tbody>
+              </table>
+              <div class="empty-table" id="emptyTable" hidden>没有找到兑换码</div>
+            </div>
+          </section>
+        </section>
+
+        <section class="admin-view" id="settingsView" hidden>
+          <section class="settings-hero">
+            <span class="card-kicker">ASR PROVIDER</span>
+            <h2>语音识别方式</h2>
+            <p>切换后，新创建的提取任务会使用对应引擎。已有任务不受影响。</p>
+          </section>
+
+          <form id="settingsForm">
+            <div class="provider-grid">
+              <label class="provider-option">
+                <input type="radio" name="asrProvider" value="local" checked />
+                <span class="provider-icon local">W</span>
+                <span><strong>本地 Whisper</strong><small>音频留在服务器内识别，不产生语音 API 费用</small></span>
+                <i id="localStatus">检测中</i>
+              </label>
+              <label class="provider-option">
+                <input type="radio" name="asrProvider" value="dashscope" />
+                <span class="provider-icon cloud">云</span>
+                <span><strong>阿里云 Fun-ASR</strong><small>异步文件识别，适合降低服务器配置</small></span>
+                <i id="dashscopeStatus">检测中</i>
+              </label>
+            </div>
+
+            <p class="backend-config-note">API Key 由后端环境配置；此页面只负责切换识别引擎。</p>
+
+            <button class="save-settings" id="saveSettings" type="submit">保存语音识别配置</button>
+          </form>
+        </section>
+      </main>
+    </div>
+
+    <dialog class="history-dialog" id="cdkHistoryDialog">
+      <div class="history-dialog-head">
+        <div><span>最近 7 天提取记录</span><strong id="cdkHistoryCode"></strong></div>
+        <button id="closeCdkHistory" type="button" aria-label="关闭">×</button>
+      </div>
+      <div class="history-dialog-body">
+        <div class="history-dialog-note">服务器临时记录仅供管理员查询，到期后自动删除。只展示视频链接与最终整理文案。</div>
+        <div id="cdkHistoryRecords"></div>
+        <div class="admin-history-empty" id="cdkHistoryEmpty" hidden>最近 7 天没有可查看的提取记录</div>
+      </div>
+    </dialog>
+
+    <div class="admin-toast" id="adminToast" hidden></div>
+    <script type="module" src="/src/transcript-admin.ts"></script>
+  </body>
+</html>

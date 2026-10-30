@@ -1,0 +1,196 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#f7f7f4" />
+    <meta name="description" content="使用兑换码进入的一次性视频语音文案提取工具" />
+    <title>文案提取器</title>
+  </head>
+  <body>
+    <section class="access-gate" id="accessGate">
+      <div class="access-card">
+        <span class="access-logo" aria-hidden="true">稿</span>
+        <span class="eyebrow">TRANSCRIPT ACCESS</span>
+        <h1>兑换码验证</h1>
+        <p>输入有效兑换码后进入文案提取器。每次提取前会校验视频时长，校验通过才扣除 1 次。</p>
+        <form id="accessForm">
+          <label for="accessCode">兑换码 / CDK</label>
+          <input id="accessCode" name="code" autocomplete="one-time-code" placeholder="TX-05M-XXXX-XXXX-XXXX" maxlength="100" required />
+          <button id="accessButton" type="submit">验证并进入</button>
+        </form>
+        <div class="access-error" id="accessError" hidden role="alert"></div>
+        <small>最终文案记录保留 7 天；视频和音频完成后立即清理</small>
+      </div>
+    </section>
+
+    <div class="extractor-shell" id="appShell" hidden>
+      <header class="app-header">
+        <button class="brand" id="brandHome" type="button" aria-label="返回平台首页">
+          <span class="brand-mark" aria-hidden="true">文</span>
+          <span>
+            <strong>文案提取器</strong>
+            <small>Transcript Extractor</small>
+          </span>
+        </button>
+        <div class="header-actions">
+          <a class="records-button" href="/copy-studio/records"><span>◷</span> 提取记录</a>
+          <span class="privacy-badge"><i></i>记录保留 7 天</span>
+          <span class="quota-badge" id="quotaBadge"><b id="quotaTier">—</b><span id="quotaRemaining">—</span></span>
+          <span class="api-badge" id="apiBadge"><i></i><span>正在连接</span></span>
+          <button class="logout-button" id="logoutButton" type="button">退出</button>
+          <button class="icon-button" id="helpButton" type="button" aria-label="使用说明">?</button>
+        </div>
+      </header>
+
+      <main>
+        <section class="platform-home" id="platformHome">
+          <div class="home-hero">
+            <span class="eyebrow">LOCAL TRANSCRIPT TOOLS</span>
+            <h1>选择视频平台</h1>
+            <p>视频音频由当前配置的语音识别引擎转写，再交给 DeepSeek 进行语义整理。文件仅用于本次处理，完成后自动清理。</p>
+          </div>
+
+          <div class="platform-grid" aria-label="视频平台">
+            <button class="platform-card available douyin" type="button" data-platform="douyin">
+              <span class="platform-icon">抖</span>
+              <span class="platform-state ready">已支持</span>
+              <strong>抖音文案提取</strong>
+              <small>分享链接 → 语音识别 → DeepSeek 整理</small>
+              <span class="card-action">进入专区 <b>→</b></span>
+            </button>
+
+            <button class="platform-card available xiaohongshu" type="button" data-platform="xiaohongshu">
+              <span class="platform-icon">小红书</span>
+              <span class="platform-state ready">已支持</span>
+              <strong>小红书文案提取</strong>
+              <small>公开视频笔记 → 语音识别 → DeepSeek 整理</small>
+              <span class="card-action">进入专区 <b>→</b></span>
+            </button>
+
+            <button class="platform-card available kuaishou" type="button" data-platform="kuaishou">
+              <span class="platform-icon">快</span>
+              <span class="platform-state ready">已支持</span>
+              <strong>快手文案提取</strong>
+              <small>分享链接 → 语音识别 → DeepSeek 整理</small>
+              <span class="card-action">进入专区 <b>→</b></span>
+            </button>
+
+            <button class="platform-card available bilibili" type="button" data-platform="bilibili">
+              <span class="platform-icon">B</span>
+              <span class="platform-state ready">已支持</span>
+              <strong>B站文案提取</strong>
+              <small>支持BV链接和指定分P内容整理</small>
+              <span class="card-action">进入专区 <b>→</b></span>
+            </button>
+          </div>
+
+          <div class="privacy-note">
+            <span aria-hidden="true">⌁</span>
+            <div><strong>临时音视频，短期文案记录</strong><p>音视频只做临时处理，完成后自动清理；原始转写会发送给 DeepSeek。视频链接与最终整理文案在当前浏览器保留 7 天，供您随时查看。</p></div>
+          </div>
+        </section>
+
+        <section class="workspace" id="workspace" hidden>
+          <div class="workspace-head">
+            <button class="back-button" id="backHome" type="button">← 所有平台</button>
+            <div class="workspace-title">
+              <span class="mini-platform-icon douyin" id="workspacePlatformIcon">抖</span>
+              <div><h1 id="workspacePlatformTitle">抖音文案提取</h1><p><span id="workspaceAsrLabel">语音识别</span>听写，DeepSeek 负责语义整理与总结</p></div>
+            </div>
+            <button class="reset-button" id="resetButton" type="button">清空本次结果</button>
+          </div>
+
+          <div class="workspace-grid">
+            <div class="input-column">
+              <article class="panel input-panel">
+                <div class="panel-heading">
+                  <div><span class="step-number">1</span><h2>粘贴分享链接</h2></div>
+                  <span class="one-time">不会保存</span>
+                </div>
+                <label class="sr-only" for="shareText" id="shareTextLabel">抖音分享文本</label>
+                <div class="textarea-wrap">
+                  <textarea id="shareText" rows="6" placeholder="粘贴抖音分享链接或完整分享文本，例如：&#10;这些大开脑洞的懒人设计… https://v.douyin.com/xxxxx/"></textarea>
+                  <button class="clear-input" id="clearInput" type="button" aria-label="清空输入" hidden>×</button>
+                </div>
+                <div class="input-hint"><span>⌘ + Enter 快速提取</span><span id="inputCount">0 / 5000</span></div>
+                <div class="action-row">
+                  <button class="secondary-button" id="infoButton" type="button"><span>ⓘ</span> 获取信息</button>
+                  <button class="extract-button" id="extractButton" type="button"><span>▤</span> 提取并整理文案</button>
+                </div>
+
+                <div class="progress-box" id="progressBox" hidden aria-live="polite">
+                  <div class="progress-copy"><strong id="progressLabel">等待处理</strong><span id="progressPercent">5%</span></div>
+                  <div class="progress-track"><i id="progressBar"></i></div>
+                  <p><span id="progressAsrLabel">语音识别</span>与 DeepSeek 依次处理任务，请保持页面打开。</p>
+                </div>
+
+                <div class="error-box" id="errorBox" hidden role="alert"></div>
+              </article>
+
+              <article class="panel video-panel" id="videoPanel">
+                <div class="panel-heading">
+                  <div><span class="step-number muted">2</span><h2>视频信息</h2></div>
+                  <span class="video-id" id="videoId">等待解析</span>
+                </div>
+                <div class="video-empty" id="videoEmpty">
+                  <span>▶</span><p>获取信息后，这里显示视频标题和基础信息</p>
+                </div>
+                <div class="video-details" id="videoDetails" hidden>
+                  <h3 id="videoTitle"></h3>
+                  <div class="meta-grid">
+                    <div><span>作者</span><strong id="videoAuthor">—</strong></div>
+                    <div><span>音频时长</span><strong id="videoDuration">—</strong></div>
+                    <div><span>识别方式</span><strong id="asrMethod">等待配置</strong></div>
+                    <div><span>文件处理</span><strong class="clean-status">完成即删除</strong></div>
+                  </div>
+                </div>
+              </article>
+            </div>
+
+            <div class="result-column">
+            <article class="panel semantic-panel">
+              <div class="result-heading semantic-heading">
+                <div><span class="result-icon semantic-icon">AI</span><h2>DeepSeek 语义整理</h2></div>
+                <div class="result-actions">
+                  <span id="semanticWordCount">0 字</span>
+                  <button id="copySemanticButton" type="button" disabled>复制</button>
+                  <button class="semantic-download" id="downloadSemanticButton" type="button" disabled>下载整理稿</button>
+                </div>
+              </div>
+              <div class="semantic-body">
+                <div class="semantic-empty" id="semanticEmpty">
+                  <span class="ai-orbit" aria-hidden="true">AI</span>
+                  <div><h3>等待语义整理</h3><p>DeepSeek 将补充标点与段落，并生成完整整理稿、核心精华和可执行要点。</p></div>
+                </div>
+                <div class="semantic-error" id="semanticError" hidden></div>
+                <label class="sr-only" for="semanticText">DeepSeek语义整理文案</label>
+                <textarea id="semanticText" hidden spellcheck="false" aria-label="可编辑的DeepSeek语义整理文案"></textarea>
+              </div>
+              <footer class="result-footer semantic-footer">
+                <span><i class="privacy-dot"></i>链接与最终文案在本浏览器保留 7 天</span>
+                <span id="semanticModelLabel">deepseek-chat</span>
+              </footer>
+            </article>
+            </div>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <dialog id="helpDialog">
+      <div class="dialog-head"><h2>使用说明</h2><button id="closeHelp" type="button" aria-label="关闭">×</button></div>
+      <ol>
+        <li>在抖音、小红书、快手或B站复制公开视频分享链接，可以连同分享文案一起粘贴。</li>
+        <li>小红书和快手目前只支持视频作品；B站多P视频按链接中的指定分P提取，未指定时默认第一P。</li>
+        <li>点击“获取信息”只解析视频，不扣次数；点击“提取并整理文案”会先校验视频时长，符合兑换码档次才扣除 1 次。</li>
+        <li>语音识别完成后，转写文字会发送给 DeepSeek，用于修正断句、整理完整文案并提炼核心要点。</li>
+        <li>处理完成后临时视频、音频和中间文件会自动删除。</li>
+        <li>视频链接和最终整理文案会在当前浏览器保留 7 天，可通过顶部“提取记录”查看；不同设备不会同步。</li>
+      </ol>
+    </dialog>
+
+    <div class="toast" id="toast" hidden role="status"></div>
+    <script type="module" src="/src/transcript-main.ts"></script>
+  </body>
+</html>
